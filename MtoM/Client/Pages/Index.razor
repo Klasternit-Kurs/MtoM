@@ -1,0 +1,26 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager _nm
+
+<button @onclick="Daj">Teeest</button>
+
+@code
+{
+	HubConnection _hc;
+	protected override async Task OnInitializedAsync()
+	{
+		_hc = new HubConnectionBuilder().WithUrl(_nm.ToAbsoluteUri("hab")).Build();
+		_hc.On<Racun> ("evo", (br) =>
+		{
+			Console.WriteLine($"Klijent dobio");
+			Console.WriteLine(br.Artikals[0].Naziv);
+			Console.WriteLine(br.Kolicine[0]);
+		});
+		await _hc.StartAsync();
+	}
+
+	private async void Daj()
+	{
+		await _hc.SendAsync("DajSve");
+	}
+}
