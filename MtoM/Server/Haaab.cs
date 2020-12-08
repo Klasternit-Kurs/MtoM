@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using MtoM.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MtoM.Server
 {
@@ -17,9 +20,54 @@ namespace MtoM.Server
 			_baza = baza;
 			_log = log;
 		}
-
+		public void Novi(Radnik r)
+		{
+			_baza.Radniks.Add(r);
+			_baza.SaveChanges();
+			Clients.Caller.SendAsync("rad", _baza.Radniks.Where(r => r.Tim == null).First()); 
+		}
+		public void DodajTim(Tim t)
+		{
+			List<Radnik> rad = new List<Radnik>();
+			t.Radniks.ForEach(r => rad.Add(_baza.Radniks.Find(r.ID)));
+			t.Radniks = rad;
+			_baza.Add(t);
+			_baza.SaveChanges();
+		}
+		public void Dodaj(Radnik r)
+		{
+			var tim = _baza.Tims.First();
+			tim.Radniks.Add(r);
+			_baza.SaveChanges();
+		}
 		public void DajSve()
 		{
+			_baza.Radniks.ToList();
+			var t = _baza.Tims.ToList();
+			_log.LogInformation($"Tim ima {t[0].Radniks.Count} radnika");
+
+
+			/*var n = new Nesto();
+			n.Vremena.Add(DateTime.Now);
+			n.Vremena.Add(DateTime.Now + new TimeSpan(7, 0, 0, 0));
+			n.Vremena.Add(DateTime.Now - new TimeSpan(7, 16, 15, 0));
+
+			n.VremenaZaBazu = JsonSerializer.Serialize<List<DateTime>>(n.Vremena);
+			_log.LogInformation(n.VremenaZaBazu);
+
+
+
+			n.Vremena = JsonSerializer.Deserialize<List<DateTime>>(n.VremenaZaBazu);
+
+			Dictionary<string, int[]> bla = new Dictionary<string, int[]>();
+			int[] a = { 4, 5, 6, 7 };
+			bla.Add("asd", a);
+			int[] b = { 5, 6, 3 };
+			bla.Add("qwe", b);
+
+			string zklj = JsonSerializer.Serialize(bla);
+			_log.LogInformation(zklj);
+
 			_baza.Artikli.ToList();
 			_baza.RAs.ToList();
 			var rac = _baza.Racuni.ToList();
@@ -32,9 +80,7 @@ namespace MtoM.Server
 				
 				r.Artikli.ToList().ForEach(a => 
 					{
-						trenutniRacun.Artikals.Add
-								(new MtoM.Shared.Artikal { ID = a.ID, Naziv = a.Naziv });
-						trenutniRacun.Kolicine.Add(_baza.RAs.Find(a.ID, r.RbR).Kolicina);
+						
 					 });
 				
 				racZaKlijenta.Add(trenutniRacun);
@@ -44,13 +90,10 @@ namespace MtoM.Server
 			{
 				_log.LogInformation($"{r.Rbr} -- {r.DatumIzdavanja}");
 				_log.LogInformation("-----------------------------");
-				r.Artikals.ForEach(a => 
-					_log.LogInformation($"{a.ID} -- {a.Naziv}"));
-				r.Kolicine.ForEach(k =>
-					_log.LogInformation($"Kolicina: {k}"));
+				
 			}
 
-			Clients.Caller.SendAsync("evo", racZaKlijenta[0]);
+			Clients.Caller.SendAsync("evo", racZaKlijenta[0]);*/
 		}
 	}
 }

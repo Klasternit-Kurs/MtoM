@@ -3,24 +3,44 @@
 @inject NavigationManager _nm
 
 <button @onclick="Daj">Teeest</button>
+<button @onclick="Nap">Napravi radnika</button>
+<button @onclick="Dod">Dodaj radnika u tim</button>
 
 @code
 {
 	HubConnection _hc;
+	private Radnik rad;
+	private Tim tim;
 	protected override async Task OnInitializedAsync()
 	{
 		_hc = new HubConnectionBuilder().WithUrl(_nm.ToAbsoluteUri("hab")).Build();
 		_hc.On<Racun> ("evo", (br) =>
 		{
 			Console.WriteLine($"Klijent dobio");
-			Console.WriteLine(br.Artikals[0].Naziv);
-			Console.WriteLine(br.Kolicine[0]);
+
 		});
+		_hc.On<Radnik>("rad", r => rad = r);
+		_hc.On<Tim>("tim", t => tim = t);
 		await _hc.StartAsync();
 	}
 
 	private async void Daj()
 	{
 		await _hc.SendAsync("DajSve");
+	}
+
+	
+
+	private async void Nap()
+	{
+		await _hc.SendAsync("Novi", new Radnik { Naziv = "Novi" });
+	}
+
+	private async void Dod()
+	{
+		tim = new Tim();
+		tim.Naziv = "Novi";
+		tim.Radniks.Add(rad);
+		await _hc.SendAsync("DodajTim", tim);
 	}
 }
