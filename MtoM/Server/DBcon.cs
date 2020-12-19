@@ -14,7 +14,7 @@ namespace MtoM.Server
 
 		public DbSet<Racun> Racuni { get; set; }
 		public DbSet<Artikal> Artikli { get; set; }
-		public DbSet<Racun_Artikal> RAs { get; set; }
+		//public DbSet<Racun_Artikal> RAs { get; set; }
 
 		public DbSet<Nesto> Nestos { get; set; }
 
@@ -31,14 +31,15 @@ namespace MtoM.Server
 										.WithMany(t => t.Radniks)
 										.HasForeignKey(r => r.Tim_FK);
 
-			modelBuilder.Entity<Racun>().HasKey(r => r.RbR);
+			modelBuilder.Entity<Racun>().HasKey(r => r.Rbr);
 			modelBuilder.Entity<Artikal>().HasKey(a => a.ID);
+			modelBuilder.Entity<Racun>().Ignore(r => r.Artikli);
 
 			modelBuilder.Entity<Nesto>().HasKey(n => n.ID);
 
 			modelBuilder.Entity<Nesto>().Ignore(n => n.Vremena);
 
-			modelBuilder.Entity<Racun>().HasMany(r => r.Artikli)
+			/*modelBuilder.Entity<Racun>().HasMany(r => r.Artikli)
 										.WithMany(a => a.Racuni)
 										.UsingEntity<Racun_Artikal>
 			(
@@ -74,7 +75,7 @@ namespace MtoM.Server
 					new Racun_Artikal { R_FK = -2, A_FK = -1, Kolicina = 2 },
 					new Racun_Artikal { R_FK = -2, A_FK = -3, Kolicina = 7 },
 					new Racun_Artikal { R_FK = -3, A_FK = -1, Kolicina = 1 }
-				);
+				);*/
 
 			modelBuilder.Entity<Tim>().HasData
 			(

@@ -31,19 +31,27 @@ namespace MtoM.Shared
 		public List<DateTime> Vremena { get; set; } = new List<DateTime>();
 		public string VremenaZaBazu { get; set; }
 	}
+	//MVVM
+	//model  -- viewmodel  -- view
+
+	//MVC
+	//model --- view -- controller
+
 
 	public class Racun
 	{
 		public int Rbr { get; set; }
 		public DateTime DatumIzdavanja { get; set; }
 		public Dictionary<Artikal, int> Artikli = new Dictionary<Artikal, int>();
+		public string ArtikliZaBazu { get; set; }
+		public string Kolicine { get; set; }
 	
 	}
 
+	[Serializable]
 	public class Artikal
 	{
 		public int ID { get; set; }
 		public string Naziv { get; set; }
-		
 	}
 }

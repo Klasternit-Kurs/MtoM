@@ -1,46 +1,83 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager _nm
+@using System.Text.Json
+@using System.Text.Json.Serialization
+
+<input @bind-value="_sifra" />
+<input @bind-value="_kol"/>
+
+<button @onclick="Dodaj">Dodaj na rac</button>
 
 <button @onclick="Daj">Teeest</button>
-<button @onclick="Nap">Napravi radnika</button>
-<button @onclick="Dod">Dodaj radnika u tim</button>
 
+@if (_r is not null)
+{
+	<div>@_r.Rbr --- @_r.DatumIzdavanja</div>
+	<ul>
+		@foreach(Artikal a in _r.Artikli.Keys)
+		{
+			<li>@a.ID -- @a.Naziv -- Kolicina: @_r.Artikli[a]</li>
+		}
+	</ul>
+}
 @code
 {
 	HubConnection _hc;
-	private Radnik rad;
-	private Tim tim;
+	Racun _r;
+	Racun _rEdit = new Racun();
+
+	int _sifra;
+	int _kol;
+
 	protected override async Task OnInitializedAsync()
 	{
 		_hc = new HubConnectionBuilder().WithUrl(_nm.ToAbsoluteUri("hab")).Build();
-		_hc.On<Racun> ("evo", (br) =>
-		{
-			Console.WriteLine($"Klijent dobio");
 
+		_hc.On<Racun> ("Evo", r =>
+		{
+			Console.WriteLine("Krece metoda");
+			var ar = JsonSerializer.Deserialize<List<Artikal>>(r.ArtikliZaBazu);
+			var kol = JsonSerializer.Deserialize<List<int>>(r.Kolicine);
+
+			for (int i = 0; i < ar.Count; i++)
+			{
+				r.Artikli.Add(ar[i], kol[i]);
+				Console.WriteLine("Dodajem artikal");
+			}
+			_r = r;
+			StateHasChanged();
 		});
-		_hc.On<Radnik>("rad", r => rad = r);
-		_hc.On<Tim>("tim", t => tim = t);
+
+		_hc.On<bool, Artikal>("DodajArt", (p, a)
+			=>
+		{
+			if (!p)
+				return;
+			_rEdit.Artikli.Add(a, _kol);
+			Console.WriteLine("Dodao :)");
+			_sifra = 0;
+			_kol = 0;
+			StateHasChanged();
+		});
+
+
 		await _hc.StartAsync();
+	}
+
+	private async void Dodaj()
+	{
+		await _hc.SendAsync("Proveri", _sifra);
 	}
 
 	private async void Daj()
 	{
-		await _hc.SendAsync("DajSve");
+
+		await _hc.SendAsync("UnosRac", _rEdit, JsonSerializer.Serialize(_rEdit.Artikli.Keys.ToList()),
+			JsonSerializer.Serialize(_rEdit.Artikli.Values.ToList()));
+		await _hc.SendAsync("PosaljiRac");
+
 	}
 
-	
 
-	private async void Nap()
-	{
-		await _hc.SendAsync("Novi", new Radnik { Naziv = "Novi" });
-	}
-
-	private async void Dod()
-	{
-		tim = new Tim();
-		tim.Naziv = "Novi";
-		tim.Radniks.Add(rad);
-		await _hc.SendAsync("DodajTim", tim);
-	}
 }

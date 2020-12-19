@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MtoM.Server
 {
-	public class Artikal
+	/*public class Artikal
 	{
 		public int ID { get; set; }
 		public string Naziv { get; set; }
@@ -33,5 +33,5 @@ namespace MtoM.Server
 		public Artikal Artikal { get; set; }
 
 		public int Kolicina { get; set; }
-	}
+	}*/
 }

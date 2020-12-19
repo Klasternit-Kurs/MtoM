@@ -20,80 +20,30 @@ namespace MtoM.Server
 			_baza = baza;
 			_log = log;
 		}
-		public void Novi(Radnik r)
+		
+		public void UnosRac(Racun r, string artikli, string kolicine)
 		{
-			_baza.Radniks.Add(r);
-			_baza.SaveChanges();
-			Clients.Caller.SendAsync("rad", _baza.Radniks.Where(r => r.Tim == null).First()); 
-		}
-		public void DodajTim(Tim t)
-		{
-			List<Radnik> rad = new List<Radnik>();
-			t.Radniks.ForEach(r => rad.Add(_baza.Radniks.Find(r.ID)));
-			t.Radniks = rad;
-			_baza.Add(t);
+			List<Artikal> art = JsonSerializer.Deserialize<List<Artikal>>(artikli);
+			List<int> kol = JsonSerializer.Deserialize<List<int>>(kolicine);
+
+			_baza.Racuni.Add(r);
+			r.ArtikliZaBazu = JsonSerializer.Serialize(art);
+			r.Kolicine = JsonSerializer.Serialize(kol);
 			_baza.SaveChanges();
 		}
-		public void Dodaj(Radnik r)
+
+		public void PosaljiRac()
 		{
-			var tim = _baza.Tims.First();
-			tim.Radniks.Add(r);
-			_baza.SaveChanges();
+			Clients.Caller.SendAsync("Evo", _baza.Racuni.OrderBy(r => r.Rbr).Last());
 		}
-		public void DajSve()
+
+		public void Proveri(int s)
 		{
-			_baza.Radniks.ToList();
-			var t = _baza.Tims.ToList();
-			_log.LogInformation($"Tim ima {t[0].Radniks.Count} radnika");
-
-
-			/*var n = new Nesto();
-			n.Vremena.Add(DateTime.Now);
-			n.Vremena.Add(DateTime.Now + new TimeSpan(7, 0, 0, 0));
-			n.Vremena.Add(DateTime.Now - new TimeSpan(7, 16, 15, 0));
-
-			n.VremenaZaBazu = JsonSerializer.Serialize<List<DateTime>>(n.Vremena);
-			_log.LogInformation(n.VremenaZaBazu);
-
-
-
-			n.Vremena = JsonSerializer.Deserialize<List<DateTime>>(n.VremenaZaBazu);
-
-			Dictionary<string, int[]> bla = new Dictionary<string, int[]>();
-			int[] a = { 4, 5, 6, 7 };
-			bla.Add("asd", a);
-			int[] b = { 5, 6, 3 };
-			bla.Add("qwe", b);
-
-			string zklj = JsonSerializer.Serialize(bla);
-			_log.LogInformation(zklj);
-
-			_baza.Artikli.ToList();
-			_baza.RAs.ToList();
-			var rac = _baza.Racuni.ToList();
-
-			var racZaKlijenta = new List<MtoM.Shared.Racun>();
-			
-			foreach(Racun r in rac)
-			{
-				var trenutniRacun = new Shared.Racun { Rbr = r.RbR, DatumIzdavanja = r.DatumIzdavanja };
-				
-				r.Artikli.ToList().ForEach(a => 
-					{
-						
-					 });
-				
-				racZaKlijenta.Add(trenutniRacun);
-			}
-
-			foreach (var r in racZaKlijenta)
-			{
-				_log.LogInformation($"{r.Rbr} -- {r.DatumIzdavanja}");
-				_log.LogInformation("-----------------------------");
-				
-			}
-
-			Clients.Caller.SendAsync("evo", racZaKlijenta[0]);*/
+			var art = _baza.Artikli.Find(s);
+			if (art is not null)
+				Clients.Caller.SendAsync("DodajArt", true, art);
+			else
+				Clients.Caller.SendAsync("DodajArt", false, null);
 		}
 	}
 }
